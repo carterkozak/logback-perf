@@ -23,12 +23,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Threads;
+import org.openjdk.jmh.annotations.Warmup;
 import org.slf4j.LoggerFactory;
 
 
@@ -41,7 +45,10 @@ import org.slf4j.LoggerFactory;
 // 
 //java -jar  target/benchmarks.jar ".*AsyncWithFileAppenderBenchmark.*" -f 1  -tu ms -wi 2 -i 10 -t {1,2,4,16,32,64}
 	
-
+@Fork(1)
+@Threads(1)
+@Warmup(iterations = 3, time = 3)
+@Measurement(iterations = 3, time = 3)
 @State(Scope.Benchmark)
 public class AsyncWithFileAppenderBenchmark {
     public static final String MESSAGE = "This is a debug message";
@@ -114,10 +121,10 @@ public class AsyncWithFileAppenderBenchmark {
     	log4j2Logger.debug(MESSAGE);
     }
 
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    @Benchmark
-    public void log4j1File() {
-        log4j1Logger.debug(MESSAGE);
-    }
+//    @BenchmarkMode(Mode.Throughput)
+//    @OutputTimeUnit(TimeUnit.MILLISECONDS)
+//    @Benchmark
+//    public void log4j1File() {
+//        log4j1Logger.debug(MESSAGE);
+//    }
 }

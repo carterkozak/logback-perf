@@ -23,12 +23,22 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Threads;
+import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.profile.GCProfiler;
+import org.openjdk.jmh.profile.LinuxPerfNormProfiler;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.slf4j.LoggerFactory;
 
 
@@ -43,6 +53,10 @@ import org.slf4j.LoggerFactory;
 // RUNNING THIS TEST WITH 4 THREADS:
 // java -jar logback-perf/target/benchmarks.jar ".*FileAppenderBenchmark.*" -f 1
 // -wi 10 -i 20 -t 4
+@Fork(1)
+@Threads(1)
+@Warmup(iterations = 4, time = 3)
+@Measurement(iterations = 4, time = 3)
 @State(Scope.Benchmark)
 public class FileAppenderBenchmark {
     public static final String MESSAGE = "This is a debug message";
@@ -52,14 +66,16 @@ public class FileAppenderBenchmark {
     
     Logger log4j2Logger;
     org.slf4j.Logger slf4jLogger;
-    org.apache.log4j.Logger log4j1Logger;
-    java.util.logging.Logger julLogger;
     String outFolder = "";
-    
     
     @Setup
     public void setUp() throws Exception {
         System.setProperty("log4j.configurationFile", "log4j2-perf.xml");
+        // SystemMillisClock is unnecessary with https://github.com/apache/logging-log4j2/pull/572
+//        System.setProperty("log4j.Clock", "SystemMillisClock");
+        System.setProperty("log4j2.enable.direct.encoders", "false");
+        System.setProperty("log4j2.formatMsgNoLookups", "true");
+
         System.setProperty("logback.configurationFile", "logback-perf.xml");
         System.setProperty("log4j.configuration", "log4j-perf.xml");
 
@@ -71,7 +87,6 @@ public class FileAppenderBenchmark {
         
         log4j2Logger = LogManager.getLogger(loggerName);
         slf4jLogger = LoggerFactory.getLogger(loggerName);
-        log4j1Logger = org.apache.log4j.Logger.getLogger(loggerName);
         
     }
 
@@ -102,17 +117,18 @@ public class FileAppenderBenchmark {
         log4j2Logger.debug(MESSAGE);
     }
     
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    @Benchmark
-    public void logbackFile() {
-        slf4jLogger.debug(MESSAGE);
-    }
+//    @BenchmarkMode(Mode.Throughput)
+//    @OutputTimeUnit(TimeUnit.MILLISECONDS)
+//    @Benchmark
+//    public void logbackFile() {
+//        slf4jLogger.debug(MESSAGE);
+//    }
 
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    @Benchmark
-    public void log4j1File() {
-        log4j1Logger.debug(MESSAGE);
+    public static void main(String[] args) throws RunnerException {
+        new Runner(new OptionsBuilder()
+                .include(FileAppenderBenchmark.class.getName())
+                .addProfiler(GCProfiler.class)
+                .build())
+                .run();
     }
 }

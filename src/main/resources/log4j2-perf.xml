@@ -16,13 +16,14 @@
  limitations under the License.
 
 -->
-<Configuration name="XMLPerfTest" status="error">
+<Configuration name="XMLPerfTest" status="error" packages="ch.qos.logback.perf">
 
     <Appenders>
-        <File name="TestLogfile" fileName="target/test-output/log4j2-perf.log" immediateFlush="false">
-            <PatternLayout>
-                <Pattern>%d %p [%t] %logger - %m%n</Pattern>
-            </PatternLayout>
+        <File name="TestLogfile" fileName="target/test-output/log4j2-perf.log" immediateFlush="false" bufferSize="262144">
+            <SimpleLayout/>
+<!--            <PatternLayout>-->
+<!--                <Pattern>%d %p [%t] %logger - %m{nolookups}%n</Pattern>-->
+<!--            </PatternLayout>-->
         </File>
     </Appenders>
 
